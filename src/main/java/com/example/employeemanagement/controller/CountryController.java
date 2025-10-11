@@ -1,0 +1,56 @@
+package com.example.employeemanagement.controller;
+
+import com.example.employeemanagement.dto.request.CountryRequest;
+import com.example.employeemanagement.dto.response.CountryResponse;
+import com.example.employeemanagement.service.CountryService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("countries")
+@RequiredArgsConstructor
+@Validated
+public class CountryController {
+    private final CountryService countryService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CountryResponse> getCountryById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        CountryResponse countryResponse = countryService.getCountryById(id);
+        return ResponseEntity.ok(countryResponse);
+    }
+
+    @PostMapping
+    public ResponseEntity<Long> createCountry(@Valid @RequestBody CountryRequest countryRequest) {
+        Long id = countryService.createCountry(countryRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
+    }
+
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Long> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @Valid @RequestBody CountryRequest countryRequest) {
+        try {
+            Long updatedId = countryService.updateCountry(id, countryRequest);
+            return ResponseEntity.ok(updatedId);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        try {
+            countryService.deleteCountry(id);
+            return  ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+}
