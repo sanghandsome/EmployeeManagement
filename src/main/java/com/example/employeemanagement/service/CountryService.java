@@ -2,6 +2,7 @@ package com.example.employeemanagement.service;
 
 import com.example.employeemanagement.dto.request.CountryRequest;
 import com.example.employeemanagement.dto.response.CountryResponse;
+import com.example.employeemanagement.mapper.CountryMapper;
 import com.example.employeemanagement.model.Country;
 import com.example.employeemanagement.repository.CountryRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,32 +13,22 @@ import org.springframework.stereotype.Service;
 public class CountryService {
     private final CountryRepository countryRepository;
 
-    public Long createCountry(CountryRequest countryRequest) {
-        Country country = new Country();
-        country.setName(countryRequest.getName());
-        country.setCode(countryRequest.getCode());
-        country.setDescription(countryRequest.getDescription());
-        Country savedCountry = countryRepository.save(country);
-        return savedCountry.getId();
+    public CountryResponse createCountry(CountryRequest countryRequest) {
+        Country countryCreate = CountryMapper.toCountry(countryRequest);
+        countryRepository.save(countryCreate);
+        return CountryMapper.toCountryResponse(countryCreate);
     }
 
     public CountryResponse getCountryById (Long id) {
         Country country = countryRepository.findById(id).orElseThrow(() -> new RuntimeException("Country does not exist"));
-        return CountryResponse.builder()
-                .id(country.getId())
-                .name(country.getName())
-                .code(country.getCode())
-                .description(country.getDescription())
-                .build();
+        return CountryMapper.toCountryResponse(country);
     }
 
-    public Long updateCountry(Long id, CountryRequest countryRequest) {
+    public CountryResponse updateCountry(Long id, CountryRequest countryRequest) {
         Country updatedCountry = countryRepository.findById(id).orElseThrow(() -> new RuntimeException("Country does not exist"));
-        updatedCountry.setName(countryRequest.getName());
-        updatedCountry.setCode(countryRequest.getCode());
-        updatedCountry.setDescription(countryRequest.getDescription());
+        CountryMapper.updateCountry(updatedCountry,countryRequest);
         countryRepository.save(updatedCountry);
-        return updatedCountry.getId();
+        return CountryMapper.toCountryResponse(updatedCountry);
     }
 
     public void deleteCountry(Long id) {

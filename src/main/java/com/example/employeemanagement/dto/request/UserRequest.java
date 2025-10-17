@@ -1,10 +1,13 @@
 package com.example.employeemanagement.dto.request;
 
+import com.example.employeemanagement.model.Person;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+
+import java.util.List;
 
 @Data
 public class UserRequest {
@@ -19,4 +22,6 @@ public class UserRequest {
     private boolean isActive;
 
     private Long personId;
+
+    private List<Long> roleId;
 }

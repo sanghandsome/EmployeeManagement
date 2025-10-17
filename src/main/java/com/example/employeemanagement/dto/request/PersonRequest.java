@@ -2,6 +2,7 @@ package com.example.employeemanagement.dto.request;
 
 import com.example.employeemanagement.model.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class PersonRequest {
     @NotBlank(message = "Full Name is required")
     private String full_name;
 
-    @NotBlank(message = "Gender is required")
+    @NotNull(message = "Gender is required")
     private Gender gender;
 
     private LocalDate birthDate;
@@ -32,4 +33,6 @@ public class PersonRequest {
 
     @NotBlank(message = "Address is required")
     private String address;
+
+    private Long companyId;
 }

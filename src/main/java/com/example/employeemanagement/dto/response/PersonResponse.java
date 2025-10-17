@@ -17,6 +17,8 @@ public class PersonResponse {
     private String full_name;
     private Gender gender;
     private LocalDate birthDate;
+    private String phone_number;
     private String address;
+    private String companyName;
 
 }

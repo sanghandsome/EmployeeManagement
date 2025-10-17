@@ -25,17 +25,17 @@ public class CountryController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> createCountry(@Valid @RequestBody CountryRequest countryRequest) {
-        Long id = countryService.createCountry(countryRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(id);
+    public ResponseEntity<CountryResponse> createCountry(@Valid @RequestBody CountryRequest countryRequest) {
+        CountryResponse responseCreate  = countryService.createCountry(countryRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseCreate);
     }
 
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Long> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @Valid @RequestBody CountryRequest countryRequest) {
+    public ResponseEntity<CountryResponse> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @Valid @RequestBody CountryRequest countryRequest) {
         try {
-            Long updatedId = countryService.updateCountry(id, countryRequest);
-            return ResponseEntity.ok(updatedId);
+            CountryResponse responseUpdate = countryService.updateCountry(id, countryRequest);
+            return ResponseEntity.ok(responseUpdate);
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().build();
