@@ -2,8 +2,11 @@ package com.example.employeemanagement.controller;
 
 
 import com.example.employeemanagement.dto.request.CompanyRequest;
+import com.example.employeemanagement.dto.request.DepartmentRequest;
 import com.example.employeemanagement.dto.response.CompanyResponse;
+import com.example.employeemanagement.dto.response.DepartmentResponse;
 import com.example.employeemanagement.service.CompanyService;
+import com.example.employeemanagement.service.DepartmentService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;
+    private final DepartmentService departmentService;
 
     @GetMapping
     public ResponseEntity<List<CompanyResponse>> findAllCompanies() {
@@ -43,4 +47,29 @@ public class CompanyController {
     public void deleteCompany(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
         companyService.deleteCompany(id);
     }
+
+    @GetMapping("/{companyId}/departments")
+    public ResponseEntity<List<DepartmentResponse>> findDepartmentByCompany(@PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
+        return ResponseEntity.ok(departmentService.getDepartmentByCompanyId(companyId));
+    }
+
+    @PostMapping("/{companyId}/departments")
+    public ResponseEntity<DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
+        departmentRequest.setCompany_id(companyId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.createDepartment(departmentRequest));
+    }
+
+    @PatchMapping("/{companyId}/departments/{departmentId}")
+    public  ResponseEntity<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId, @PathVariable @Positive(message = "Id must be greater than 0") Long departmentId) {
+        departmentRequest.setCompany_id(companyId);
+        return ResponseEntity.ok(departmentService.updateDepartment(departmentId, departmentRequest));
+    }
+
+    @DeleteMapping("/{companyId}/departments/{departmentId}")
+    public ResponseEntity<Void> deleteDepartment(@PathVariable @Positive(message = "Id must be greater than 0") Long departmentId, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
+        departmentService.deleteDepartment(departmentId,companyId);
+        return ResponseEntity.ok().build();
+    }
+
+
 }

@@ -2,20 +2,19 @@ package com.example.employeemanagement.config;
 
 import com.example.employeemanagement.model.Company;
 import com.example.employeemanagement.model.Country;
+import com.example.employeemanagement.model.Department;
 import com.example.employeemanagement.model.Role;
 import com.example.employeemanagement.model.enums.Roles;
 import com.example.employeemanagement.repository.CompanyRepository;
 import com.example.employeemanagement.repository.CountryRepository;
+import com.example.employeemanagement.repository.DepartmentRepository;
 import com.example.employeemanagement.repository.RoleRepository;
 import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 @Configuration
 public class DataSeeder {
@@ -23,7 +22,8 @@ public class DataSeeder {
     @Bean
     CommandLineRunner initDatabase(CountryRepository countryRepository,
                                    CompanyRepository companyRepository,
-                                   RoleRepository roleRepository) {
+                                   RoleRepository roleRepository,
+                                   DepartmentRepository departmentRepository) {
         return args -> {
             Faker faker = new Faker(new Locale("en"));
             Random random = new Random();
@@ -80,6 +80,49 @@ public class DataSeeder {
                 System.out.println("✅ Generated " + roleNames.length + " roles!");
             } else {
                 System.out.println("ℹ️ Roles already exist, skipping seeding...");
+            }
+
+            // 🔧 Seed Department
+            if (departmentRepository.count() == 0) {
+                System.out.println("🚀 Seeding departments...");
+
+                Random randomDept = new Random();
+
+                // Lấy tất cả company đã có
+                List<Company> companies = companyRepository.findAll();
+
+                for (Company company : companies) {
+                    // Tạo 3-5 department root cho mỗi công ty
+                    List<Department> rootDepartments = new ArrayList<>();
+                    int rootCount = 3 + randomDept.nextInt(3); // 3-5 root department
+
+                    for (int i = 0; i < rootCount; i++) {
+                        Department dept = new Department();
+                        dept.setCode("DEP-" + company.getId() + "-" + (i + 1));
+                        dept.setName(faker.company().industry() + " Dept " + (i + 1));
+                        dept.setCompany(company);
+                        dept.setParent(null); // root department
+                        departmentRepository.save(dept);
+                        rootDepartments.add(dept);
+                    }
+
+                    // Tạo thêm 1-3 sub-department cho mỗi root department
+                    for (Department root : rootDepartments) {
+                        int subCount = 1 + randomDept.nextInt(3);
+                        for (int j = 0; j < subCount; j++) {
+                            Department subDept = new Department();
+                            subDept.setCode(root.getCode() + "-" + (j + 1));
+                            subDept.setName(root.getName() + " Sub " + (j + 1));
+                            subDept.setCompany(company);
+                            subDept.setParent(root); // gán parent
+                            departmentRepository.save(subDept);
+                        }
+                    }
+                }
+
+                System.out.println("✅ Departments generated for all companies!");
+            } else {
+                System.out.println("ℹ️ Departments already exist, skipping seeding...");
             }
         };
     }
