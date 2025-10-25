@@ -3,6 +3,7 @@ package com.example.employeemanagement.controller;
 import com.example.employeemanagement.dto.request.CountryRequest;
 import com.example.employeemanagement.dto.response.CountryResponse;
 import com.example.employeemanagement.service.CountryService;
+import com.example.employeemanagement.service.impl.CountryServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Validated
 public class CountryController {
-    private final CountryService countryService;
+    private final CountryServiceImpl countryService;
 
     @GetMapping("/{id}")
     public ResponseEntity<CountryResponse> getCountryById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {

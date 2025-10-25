@@ -35,4 +35,7 @@ public class Company {
 
     @OneToMany(mappedBy = "company" ,cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<Person> persons;
+
+    @OneToMany(mappedBy = "company" ,cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<Project> projects;
 }

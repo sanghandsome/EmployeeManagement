@@ -1,129 +1,246 @@
 package com.example.employeemanagement.config;
 
-import com.example.employeemanagement.model.Company;
-import com.example.employeemanagement.model.Country;
-import com.example.employeemanagement.model.Department;
-import com.example.employeemanagement.model.Role;
+import com.example.employeemanagement.model.*;
+import com.example.employeemanagement.model.ProjectPerson;
+import com.example.employeemanagement.model.enums.Gender;
 import com.example.employeemanagement.model.enums.Roles;
-import com.example.employeemanagement.repository.CompanyRepository;
-import com.example.employeemanagement.repository.CountryRepository;
-import com.example.employeemanagement.repository.DepartmentRepository;
-import com.example.employeemanagement.repository.RoleRepository;
+import com.example.employeemanagement.repository.*;
 import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
-public class DataSeeder {
+public class DataSeeder implements CommandLineRunner {
 
-    @Bean
-    CommandLineRunner initDatabase(CountryRepository countryRepository,
-                                   CompanyRepository companyRepository,
-                                   RoleRepository roleRepository,
-                                   DepartmentRepository departmentRepository) {
-        return args -> {
-            Faker faker = new Faker(new Locale("en"));
-            Random random = new Random();
+    private final CountryRepository countryRepository;
+    private final CompanyRepository companyRepository;
+    private final RoleRepository roleRepository;
+    private final DepartmentRepository departmentRepository;
+    private final PersonRepository personRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectPersonRepository projectPersonRepository;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
 
-            // 🗺️ Seed Country
-            if (countryRepository.count() == 0) {
-                Set<String> usedCodes = new HashSet<>();
-                for (int i = 0; i < 20; i++) {
-                    String code;
-                    do {
-                        code = faker.country().countryCode2();
-                    } while (usedCodes.contains(code));
-                    usedCodes.add(code);
+    private final Faker faker = new Faker(new Locale("en"));
+    private final Random random = new Random();
 
-                    String name = faker.country().name();
-                    String desc = faker.lorem().sentence(10);
+    public DataSeeder(CountryRepository countryRepository,
+                      CompanyRepository companyRepository,
+                      RoleRepository roleRepository,
+                      DepartmentRepository departmentRepository,
+                      PersonRepository personRepository,
+                      ProjectRepository projectRepository,
+                      ProjectPersonRepository projectPersonRepository,
+                      UserRepository userRepository,
+                      UserRoleRepository userRoleRepository) {
+        this.countryRepository = countryRepository;
+        this.companyRepository = companyRepository;
+        this.roleRepository = roleRepository;
+        this.departmentRepository = departmentRepository;
+        this.personRepository = personRepository;
+        this.projectRepository = projectRepository;
+        this.projectPersonRepository = projectPersonRepository;
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+    }
 
-                    countryRepository.save(new Country(null, name, code, desc));
-                }
-                System.out.println("✅ Generated 20 random countries!");
-            } else {
-                System.out.println("ℹ️ Countries already exist, skipping seeding...");
+    @Override
+    @Transactional
+    public void run(String... args) {
+        seedCountries();
+        seedCompanies();
+        seedRoles();
+        seedDepartments();
+        seedPersons();
+        seedProjects();
+        seedProjectPersons(); // ✅ Thêm mới
+        seedUsers();
+    }
+
+    // 🌍 COUNTRY
+    private void seedCountries() {
+        if (countryRepository.count() == 0) {
+            Set<String> usedCodes = new HashSet<>();
+            for (int i = 0; i < 20; i++) {
+                String code;
+                do {
+                    code = faker.country().countryCode2();
+                } while (usedCodes.contains(code));
+                usedCodes.add(code);
+
+                Country country = new Country();
+                country.setCode(code);
+                country.setName(faker.country().name());
+                country.setDescription(faker.lorem().sentence(8));
+                countryRepository.save(country);
             }
+            System.out.println("✅ Seeded 20 countries!");
+        }
+    }
 
-            // 🏢 Seed Company
-            if (companyRepository.count() == 0) {
-                System.out.println("🚀 Seeding random companies...");
-                for (int i = 0; i < 10; i++) {
-                    Company company = new Company();
-                    company.setName(faker.company().name());
-                    company.setCode("CMP-" + (1000 + i));
-                    company.setAddress(faker.address().fullAddress());
-
-                    companyRepository.save(company);
-                }
-                System.out.println("✅ Generated 10 random companies!");
-            } else {
-                System.out.println("ℹ️ Companies already exist, skipping seeding...");
+    // 🏢 COMPANY
+    private void seedCompanies() {
+        if (companyRepository.count() == 0) {
+            for (int i = 0; i < 10; i++) {
+                Company company = new Company();
+                company.setCode("CMP-" + (1000 + i));
+                company.setName(faker.company().name());
+                company.setAddress(faker.address().fullAddress());
+                companyRepository.save(company);
             }
+            System.out.println("✅ Seeded 10 companies!");
+        }
+    }
 
-            // 🔑 Seed Role
-            if (roleRepository.count() == 0) {
-                System.out.println("🚀 Seeding roles...");
+    // 🔑 ROLE
+    private void seedRoles() {
+        if (roleRepository.count() == 0) {
+            for (Roles roleName : Roles.values()) {
+                Role role = new Role();
+                role.setRole(roleName);
+                role.setDescription(faker.lorem().sentence(6));
+                roleRepository.save(role);
+            }
+            System.out.println("✅ Seeded Roles!");
+        }
+    }
 
-                String[] roleNames = {"ADMIN", "USER", "MANAGER", "GUEST"};
-                for (String roleName : roleNames) {
-                    Role role = new Role();
-                    role.setRole(Roles.valueOf(roleName));
-                    role.setDescription(faker.lorem().sentence(6));
+    // 🧩 DEPARTMENT
+    private void seedDepartments() {
+        if (departmentRepository.count() == 0) {
+            List<Company> companies = companyRepository.findAll();
 
-                    roleRepository.save(role);
+            for (Company company : companies) {
+                int rootCount = 3 + random.nextInt(3);
+                List<Department> roots = new ArrayList<>();
+
+                for (int i = 0; i < rootCount; i++) {
+                    Department dept = new Department();
+                    dept.setCode("DEP-" + company.getId() + "-" + (i + 1));
+                    dept.setName(faker.company().industry() + " Dept " + (i + 1));
+                    dept.setCompany(company);
+                    dept.setParent(null);
+                    departmentRepository.save(dept);
+                    roots.add(dept);
                 }
 
-                System.out.println("✅ Generated " + roleNames.length + " roles!");
-            } else {
-                System.out.println("ℹ️ Roles already exist, skipping seeding...");
-            }
-
-            // 🔧 Seed Department
-            if (departmentRepository.count() == 0) {
-                System.out.println("🚀 Seeding departments...");
-
-                Random randomDept = new Random();
-
-                // Lấy tất cả company đã có
-                List<Company> companies = companyRepository.findAll();
-
-                for (Company company : companies) {
-                    // Tạo 3-5 department root cho mỗi công ty
-                    List<Department> rootDepartments = new ArrayList<>();
-                    int rootCount = 3 + randomDept.nextInt(3); // 3-5 root department
-
-                    for (int i = 0; i < rootCount; i++) {
-                        Department dept = new Department();
-                        dept.setCode("DEP-" + company.getId() + "-" + (i + 1));
-                        dept.setName(faker.company().industry() + " Dept " + (i + 1));
-                        dept.setCompany(company);
-                        dept.setParent(null); // root department
-                        departmentRepository.save(dept);
-                        rootDepartments.add(dept);
+                for (Department root : roots) {
+                    int subCount = 1 + random.nextInt(3);
+                    for (int j = 0; j < subCount; j++) {
+                        Department sub = new Department();
+                        sub.setCode(root.getCode() + "-" + (j + 1));
+                        sub.setName(root.getName() + " Sub " + (j + 1));
+                        sub.setCompany(company);
+                        sub.setParent(root);
+                        departmentRepository.save(sub);
                     }
-
-                    // Tạo thêm 1-3 sub-department cho mỗi root department
-                    for (Department root : rootDepartments) {
-                        int subCount = 1 + randomDept.nextInt(3);
-                        for (int j = 0; j < subCount; j++) {
-                            Department subDept = new Department();
-                            subDept.setCode(root.getCode() + "-" + (j + 1));
-                            subDept.setName(root.getName() + " Sub " + (j + 1));
-                            subDept.setCompany(company);
-                            subDept.setParent(root); // gán parent
-                            departmentRepository.save(subDept);
-                        }
-                    }
                 }
-
-                System.out.println("✅ Departments generated for all companies!");
-            } else {
-                System.out.println("ℹ️ Departments already exist, skipping seeding...");
             }
-        };
+            System.out.println("✅ Departments seeded for all companies!");
+        }
+    }
+
+    // 👤 PERSON
+    private void seedPersons() {
+        if (personRepository.count() == 0) {
+            List<Company> companies = companyRepository.findAll();
+
+            for (Company company : companies) {
+                for (int i = 0; i < 8; i++) {
+                    Person person = new Person();
+                    person.setFull_name(faker.name().fullName());
+                    person.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
+                    person.setBirthdate(LocalDate.now().minusYears(20 + random.nextInt(15)));
+                    person.setPhone_number(faker.phoneNumber().cellPhone());
+                    person.setAddress(faker.address().streetAddress());
+                    person.setCompany(company);
+
+                    personRepository.save(person);
+                }
+            }
+            System.out.println("✅ Seeded 8 persons per company!");
+        }
+    }
+
+    // 🚀 PROJECT
+    private void seedProjects() {
+        if (projectRepository.count() == 0) {
+            List<Company> companies = companyRepository.findAll();
+
+            for (Company company : companies) {
+                int projectCount = 3 + random.nextInt(3);
+                for (int i = 0; i < projectCount; i++) {
+                    Project project = new Project();
+                    project.setCode("PRJ-" + company.getId() + "-" + (i + 1));
+                    project.setName(faker.app().name() + " Project " + (i + 1));
+                    project.setDescription(faker.lorem().sentence(12));
+                    project.setCompany(company);
+                    projectRepository.save(project);
+                }
+            }
+            System.out.println("✅ Projects created for all companies!");
+        }
+    }
+
+    // 🔗 PROJECT_PERSON
+    private void seedProjectPersons() {
+        if (projectPersonRepository.count() == 0) {
+            List<Project> projects = projectRepository.findAll();
+            List<Person> persons = personRepository.findAll();
+
+            for (Project project : projects) {
+                // Lấy danh sách person thuộc cùng công ty
+                List<Person> sameCompanyPersons = new ArrayList<>(persons.stream()
+                        .filter(p -> p.getCompany().getId().equals(project.getCompany().getId()))
+                        .toList());
+
+                // Chọn ngẫu nhiên 2–5 người tham gia
+                Collections.shuffle(sameCompanyPersons);
+                int numParticipants = 2 + random.nextInt(4);
+                for (Person person : sameCompanyPersons.subList(0, Math.min(numParticipants, sameCompanyPersons.size()))) {
+                    ProjectPerson pp = new ProjectPerson();
+                    pp.setProject(project);
+                    pp.setPerson(person);
+                    projectPersonRepository.save(pp);
+                }
+            }
+
+            System.out.println("✅ Seeded ProjectPerson relationships!");
+        }
+    }
+
+    // 👥 USER + USER_ROLE
+    private void seedUsers() {
+        if (userRepository.count() == 0) {
+            List<Person> persons = personRepository.findAll();
+            List<Role> roles = roleRepository.findAll();
+
+            for (int i = 0; i < Math.min(10, persons.size()); i++) {
+                Person person = persons.get(i);
+
+                User user = new User();
+                user.setEmail("user" + (i + 1) + "@example.com");
+                user.setPassword("{noop}123456");
+                user.setActive(true);
+                user.setPerson(person);
+                userRepository.save(user);
+
+                Collections.shuffle(roles);
+                int numRoles = 1 + random.nextInt(2);
+                for (Role r : roles.subList(0, numRoles)) {
+                    UserRole ur = new UserRole();
+                    ur.setUser(user);
+                    ur.setRole(r);
+                    userRoleRepository.save(ur);
+                }
+            }
+
+            System.out.println("✅ Seeded 10 users with linked roles & persons!");
+        }
     }
 }

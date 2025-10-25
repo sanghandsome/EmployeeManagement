@@ -8,6 +8,9 @@ import org.springframework.context.annotation.EnableMBeanExport;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "persons")
@@ -36,4 +39,8 @@ public class Person {
     @JoinColumn(name = "company_id")
     @NotNull(message = "Company is required")
     private Company company;
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjectPerson> projectPersons = new HashSet<>();
+
 }

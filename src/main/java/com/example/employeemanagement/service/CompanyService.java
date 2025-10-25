@@ -11,39 +11,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class CompanyService {
+public interface CompanyService {
 
-    private final CompanyRepository companyRepository;
+    public List<CompanyResponse> findAll(int page, int size);
 
-    public List<CompanyResponse> findAll() {
-        return companyRepository.findAll()
-                .stream()
-                .map(CompanyMapper::toCompanyResponse)
-                .toList();
-    }
+    public CompanyResponse findById(Long id);
 
-    public CompanyResponse findById(Long id) {
-        return CompanyMapper.toCompanyResponse(companyRepository
-                .findById(id)
-                .orElseThrow(()->new RuntimeException("Company does not exist")));
-    }
+    public CompanyResponse createCompany(CompanyRequest companyRequest);
 
-    public CompanyResponse createCompany(CompanyRequest companyRequest) {
-        Company company = CompanyMapper.toCompany(companyRequest);
-        companyRepository.save(company);
-        return CompanyMapper.toCompanyResponse(company);
-    }
+    public CompanyResponse updateCompany(CompanyRequest companyRequest, Long id);
 
-    public CompanyResponse updateCompany(CompanyRequest companyRequest, Long id) {
-        Company companyUpdate = companyRepository.findById(id).orElseThrow(()->new RuntimeException("Company does not exist"));
-        CompanyMapper.updateCompany(companyRequest, companyUpdate);
-        companyRepository.save(companyUpdate);
-        return CompanyMapper.toCompanyResponse(companyUpdate);
-    }
-
-    public void deleteCompany(Long id) {
-        companyRepository.deleteById(id);
-    }
+    public void deleteCompany(Long id);
 }

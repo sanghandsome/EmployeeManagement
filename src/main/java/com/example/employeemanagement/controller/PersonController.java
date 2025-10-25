@@ -3,6 +3,7 @@ package com.example.employeemanagement.controller;
 import com.example.employeemanagement.dto.request.PersonRequest;
 import com.example.employeemanagement.dto.response.PersonResponse;
 import com.example.employeemanagement.service.PersonService;
+import com.example.employeemanagement.service.impl.PersonServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class PersonController {
-    private final PersonService personService;
+    private final PersonServiceImpl personService;
 
     @GetMapping
-    public ResponseEntity<List<PersonResponse>> findAll() {
-        List<PersonResponse> personResponses= personService.findAllPersons();
+    public ResponseEntity<List<PersonResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<PersonResponse> personResponses= personService.findAllPersons(page, size);
         return ResponseEntity.ok(personResponses);
     }
 
@@ -33,8 +37,12 @@ public class PersonController {
     }
 
     @GetMapping("/company/{id}")
-    public ResponseEntity<List<PersonResponse>> findByCompany(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
-        List<PersonResponse> personResponses= personService.findAllPersonsByCompany(id);
+    public ResponseEntity<List<PersonResponse>> findByCompany(
+            @PathVariable @Positive(message = "Id must be greater than 0") Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<PersonResponse> personResponses= personService.findAllPersonsByCompany(id, page, size);
         return ResponseEntity.ok(personResponses);
     }
 

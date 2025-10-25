@@ -4,6 +4,7 @@ import com.example.employeemanagement.dto.request.UserRequest;
 import com.example.employeemanagement.dto.response.UserResponse;
 import com.example.employeemanagement.model.User;
 import com.example.employeemanagement.service.UserService;
+import com.example.employeemanagement.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.List;
 @Validated
 public class UserController {
 
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> findAll() {
