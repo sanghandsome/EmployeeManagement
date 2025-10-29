@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,6 +34,9 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProjectPerson> projectPersons = new HashSet<>();
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Task> tasks;
+
     public Set<String> getPersonNames() {
         Set<String> personNames = new HashSet<>();
         for (ProjectPerson projectPerson : projectPersons) {
@@ -39,6 +44,7 @@ public class Project {
         }
         return personNames;
     }
+
 
 //    @Transient
 //    public Set<Long> getPersonIds() {

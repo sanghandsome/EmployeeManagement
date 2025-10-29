@@ -3,7 +3,9 @@ package com.example.employeemanagement.config;
 import com.example.employeemanagement.model.*;
 import com.example.employeemanagement.model.ProjectPerson;
 import com.example.employeemanagement.model.enums.Gender;
+import com.example.employeemanagement.model.enums.Priority;
 import com.example.employeemanagement.model.enums.Roles;
+import com.example.employeemanagement.model.enums.Status;
 import com.example.employeemanagement.repository.*;
 import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
@@ -25,6 +27,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProjectPersonRepository projectPersonRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final TaskRepository taskRepository;
 
     private final Faker faker = new Faker(new Locale("en"));
     private final Random random = new Random();
@@ -37,7 +40,8 @@ public class DataSeeder implements CommandLineRunner {
                       ProjectRepository projectRepository,
                       ProjectPersonRepository projectPersonRepository,
                       UserRepository userRepository,
-                      UserRoleRepository userRoleRepository) {
+                      UserRoleRepository userRoleRepository,
+                      TaskRepository taskRepository) {
         this.countryRepository = countryRepository;
         this.companyRepository = companyRepository;
         this.roleRepository = roleRepository;
@@ -47,6 +51,7 @@ public class DataSeeder implements CommandLineRunner {
         this.projectPersonRepository = projectPersonRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -60,6 +65,7 @@ public class DataSeeder implements CommandLineRunner {
         seedProjects();
         seedProjectPersons(); // ✅ Thêm mới
         seedUsers();
+        seedTasks();
     }
 
     // 🌍 COUNTRY
@@ -168,22 +174,27 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // 🚀 PROJECT
+    // 🚀 PROJECT
     private void seedProjects() {
         if (projectRepository.count() == 0) {
             List<Company> companies = companyRepository.findAll();
 
             for (Company company : companies) {
-                int projectCount = 3 + random.nextInt(3);
+                // ✅ Mỗi công ty random 5–10 dự án
+                int projectCount = 5 + random.nextInt(6);
+
                 for (int i = 0; i < projectCount; i++) {
                     Project project = new Project();
-                    project.setCode("PRJ-" + company.getId() + "-" + (i + 1));
-                    project.setName(faker.app().name() + " Project " + (i + 1));
-                    project.setDescription(faker.lorem().sentence(12));
-                    project.setCompany(company);
-                    projectRepository.save(project);
+                    project.setCode("PRJ-" + company.getId() + "-" + (100 + i));
+                    project.setName(faker.company().buzzword() + " "
+                            + faker.app().name() + " App");
+                    project.setDescription(faker.lorem().sentence(15));
+                    project.setCompany(company); // ✅ Gán Company
+                    projectRepository.save(project); // ✅ Lưu sau khi set Company
                 }
             }
-            System.out.println("✅ Projects created for all companies!");
+
+            System.out.println("✅ Seeded Projects: Each company has 5–10 projects!");
         }
     }
 
@@ -242,5 +253,46 @@ public class DataSeeder implements CommandLineRunner {
 
             System.out.println("✅ Seeded 10 users with linked roles & persons!");
         }
+    }
+
+    @Transactional
+    public void seedTasks() {
+
+        List<Project> projects = projectRepository.findAll();
+        List<Person> persons = personRepository.findAll();
+
+        if (projects.isEmpty() || persons.isEmpty()) {
+            System.out.println("⚠️ Skip seedTasks: Missing Project or Person");
+            return;
+        }
+
+        for (int i = 1; i <= 50; i++) {
+
+            Project randomProject = projects.get(i % projects.size());
+            Person randomPerson = persons.get(i % persons.size());
+
+            // ✅ Bảo vệ: nếu project không có company thì bỏ qua
+            if (randomProject.getCompany() == null) {
+                System.out.println("⚠️ Skip Task: Project " + randomProject.getId() + " lacks company!");
+                continue;
+            }
+
+            Task task = new Task();
+            task.setProject(randomProject);
+            task.setPerson(randomPerson);
+            task.setName("Task " + i);
+            task.setDescription("Description for task " + i);
+            Priority[] priorities = Priority.values();
+            Status[] statuses = Status.values();
+
+            task.setPriority(priorities[i % priorities.length]);
+            task.setStatus(statuses[i % statuses.length]);
+            task.setStart_time(LocalDate.now().minusDays(i));
+            task.setEnd_time(LocalDate.now().plusDays(i));
+
+            taskRepository.save(task); // ✅ LƯU Task đúng liên kết
+        }
+
+        System.out.println("✅ Seeded Tasks successfully!");
     }
 }

@@ -7,10 +7,7 @@ import lombok.*;
 import org.springframework.context.annotation.EnableMBeanExport;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "persons")
@@ -42,5 +39,8 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProjectPerson> projectPersons = new HashSet<>();
+
+    @OneToMany(mappedBy = "person",cascade = CascadeType.ALL)
+    private List<Task> tasks;
 
 }
