@@ -11,8 +11,13 @@ import com.example.employeemanagement.repository.ProjectRepository;
 import com.example.employeemanagement.repository.TaskRepository;
 import com.example.employeemanagement.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -87,5 +92,79 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
+    }
+
+    @Override
+    public ByteArrayInputStream exportAllTasksToExcel() throws IOException {
+        List<Task> tasks = taskRepository.findAllWithRelation();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("Tasks");
+
+
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+
+
+            CreationHelper createHelper = workbook.getCreationHelper();
+            CellStyle dateCellStyle = workbook.createCellStyle();
+            short dateFormat = createHelper.createDataFormat().getFormat("yyyy-mm-dd HH:mm:ss");
+            dateCellStyle.setDataFormat(dateFormat);
+
+            // Header row
+            Row headerRow = sheet.createRow(0);
+            String[] columns = {"Project", "Description", "Start Time", "End Time", "Priority", "Status", "Person"};
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerCellStyle);
+            }
+
+            // Fill data
+            int rowIdx = 1;
+            for (Task t : tasks) {
+                Row row = sheet.createRow(rowIdx++);
+
+                String projectName = t.getProject() != null ? t.getProject().getName() : "";
+                row.createCell(0).setCellValue(projectName);
+
+                row.createCell(1).setCellValue(t.getDescription() != null ? t.getDescription() : "");
+
+                if (t.getStart_time() != null) {
+                    Cell startCell = row.createCell(2);
+                    startCell.setCellValue(t.getStart_time().format(formatter));
+                    startCell.setCellStyle(dateCellStyle);
+                } else {
+                    row.createCell(2).setCellValue("");
+                }
+
+                // End Time
+                if (t.getEnd_time() != null) {
+                    Cell startCell = row.createCell(3);
+                    startCell.setCellValue(t.getEnd_time().format(formatter));
+                    startCell.setCellStyle(dateCellStyle);
+                } else {
+                    row.createCell(3).setCellValue("");
+                }
+
+                row.createCell(4).setCellValue(t.getPriority() != null ? t.getPriority().name() : "");
+
+                row.createCell(5).setCellValue(t.getStatus() != null ? t.getStatus().name() : "");
+
+                String personName = t.getPerson() != null ? t.getPerson().getFull_name() : "";
+                row.createCell(6).setCellValue(personName);
+            }
+
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
     }
 }

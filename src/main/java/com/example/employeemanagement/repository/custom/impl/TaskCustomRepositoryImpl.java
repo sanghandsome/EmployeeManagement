@@ -26,7 +26,7 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                                            int page, int size) {
         StringBuilder jpql = new StringBuilder("SELECT t FROM Task t WHERE 1=1");
         if(company_id!=null){
-            jpql.append(" AND (t.project.company.id = :company_id OR t.person.company.id = :company_id)");
+            jpql.append(" AND (t.project.company.id = :company_id AND t.person.company.id = :company_id)");
         }
         if(project_id!=null){
             jpql.append(" AND t.project.id=:project_id");
@@ -88,6 +88,16 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
         query.setParameter("keyword", name);
         query.setFirstResult(page * size);
         query.setMaxResults(size);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<Task> findAllWithRelation() {
+        String jpql = "SELECT DISTINCT t " +
+                "FROM Task t " +
+                "LEFT JOIN FETCH t.project p " +
+                "LEFT JOIN FETCH t.person per";
+        TypedQuery<Task> query = entityManager.createQuery(jpql,Task.class);
         return query.getResultList();
     }
 }

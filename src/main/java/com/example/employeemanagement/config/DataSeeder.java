@@ -258,40 +258,39 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void seedTasks() {
 
-        List<Project> projects = projectRepository.findAll();
-        List<Person> persons = personRepository.findAll();
-
-        if (projects.isEmpty() || persons.isEmpty()) {
-            System.out.println("⚠️ Skip seedTasks: Missing Project or Person");
-            return;
-        }
-
-        for (int i = 1; i <= 50; i++) {
-
-            Project randomProject = projects.get(i % projects.size());
-            Person randomPerson = persons.get(i % persons.size());
-
-            // ✅ Bảo vệ: nếu project không có company thì bỏ qua
-            if (randomProject.getCompany() == null) {
-                System.out.println("⚠️ Skip Task: Project " + randomProject.getId() + " lacks company!");
-                continue;
-            }
-
-            Task task = new Task();
-            task.setProject(randomProject);
-            task.setPerson(randomPerson);
-            task.setName("Task " + i);
-            task.setDescription("Description for task " + i);
-            Priority[] priorities = Priority.values();
-            Status[] statuses = Status.values();
-
-            task.setPriority(priorities[i % priorities.length]);
-            task.setStatus(statuses[i % statuses.length]);
-            task.setStart_time(LocalDate.now().minusDays(i));
-            task.setEnd_time(LocalDate.now().plusDays(i));
-
-            taskRepository.save(task); // ✅ LƯU Task đúng liên kết
-        }
+//        List<Project> projects = projectRepository.findAll();
+//        List<Person> persons = personRepository.findAll();
+//
+//        if (projects.isEmpty() || persons.isEmpty()) {
+//            System.out.println("⚠️ Skip seedTasks: Missing Project or Person");
+//            return;
+//        }
+//
+//        for (int i = 1; i <= 50; i++) {
+//
+//            Project randomProject = projects.get(i % projects.size());
+//            Person randomPerson = persons.get(i % persons.size());
+//
+//            if (randomProject.getCompany() == null) {
+//                System.out.println("⚠️ Skip Task: Project " + randomProject.getId() + " lacks company!");
+//                continue;
+//            }
+//
+//            Task task = new Task();
+//            task.setProject(randomProject);
+//            task.setPerson(randomPerson);
+//            task.setName("Task " + i);
+//            task.setDescription("Description for task " + i);
+//            Priority[] priorities = Priority.values();
+//            Status[] statuses = Status.values();
+//
+//            task.setPriority(priorities[i % priorities.length]);
+//            task.setStatus(statuses[i % statuses.length]);
+//            task.setStart_time(LocalDate.now().minusDays(i));
+//            task.setEnd_time(LocalDate.now().plusDays(i));
+//
+//            taskRepository.save(task);
+//        }
 
         System.out.println("✅ Seeded Tasks successfully!");
     }

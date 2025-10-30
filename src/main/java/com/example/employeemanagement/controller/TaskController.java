@@ -6,11 +6,18 @@ import com.example.employeemanagement.service.TaskService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -45,6 +52,23 @@ public class TaskController {
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
         return ResponseEntity.ok(taskService.getTaskById(id));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportTasksToExcel() {
+        try {
+            ByteArrayInputStream in = taskService.exportAllTasksToExcel();
+            InputStreamResource fileResource = new InputStreamResource(in);
+
+            String filename = "tasks.xlsx";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(fileResource);
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping

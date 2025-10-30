@@ -2,8 +2,8 @@ package com.example.employeemanagement.service;
 
 import com.example.employeemanagement.dto.request.TaskRequest;
 import com.example.employeemanagement.dto.response.TaskResponse;
-import com.example.employeemanagement.model.Task;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 public interface TaskService {
@@ -20,4 +20,5 @@ public interface TaskService {
     public TaskResponse createTask(TaskRequest taskRequest);
     public TaskResponse updateTask(TaskRequest taskRequest, Long id);
     public void deleteTask(Long id);
+    public ByteArrayInputStream exportAllTasksToExcel() throws IOException;
 }
