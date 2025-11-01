@@ -26,6 +26,7 @@ public class PersonMapper {
                 .birthDate(person.getBirthdate())
                 .phone_number(person.getPhone_number())
                 .companyName(person.getCompany().getName())
+                .avatar_url(person.getAvatar())
                 .build();
     }
 
@@ -42,6 +43,7 @@ public class PersonMapper {
         person.setBirthdate(personRequest.getBirthDate());
         person.setPhone_number(personRequest.getPhone_number());
         person.setCompany(company);
+        person.setAvatar(personRequest.getAvatar());
         return person;
     }
 
@@ -56,5 +58,6 @@ public class PersonMapper {
         person.setBirthdate(personRequest.getBirthDate());
         person.setPhone_number(personRequest.getPhone_number());
         person.setCompany(company);
+        person.setAvatar(personRequest.getAvatar());
     }
 }

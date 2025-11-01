@@ -20,15 +20,19 @@ public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String full_name;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     private LocalDate birthdate;
+
     private String phone_number;
+
     private String address;
 
+    private String avatar;
     @OneToOne( mappedBy = "person")
     private User user;
 

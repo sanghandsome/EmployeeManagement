@@ -20,5 +20,6 @@ public class PersonResponse {
     private String phone_number;
     private String address;
     private String companyName;
+    private String avatar_url;
 
 }

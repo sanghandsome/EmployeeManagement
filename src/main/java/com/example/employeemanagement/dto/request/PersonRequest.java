@@ -24,6 +24,8 @@ public class PersonRequest {
 
     private LocalDate birthDate;
 
+    private String avatar;
+
     @NotBlank(message = "Phone Number is required")
     @Pattern(
             regexp = "^[0-9]{10,11}$",

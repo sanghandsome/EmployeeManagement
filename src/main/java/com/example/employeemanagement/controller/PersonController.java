@@ -8,10 +8,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 
 @RestController
@@ -19,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class PersonController {
-    private final PersonServiceImpl personService;
+    private final PersonService personService;
 
     @GetMapping
     public ResponseEntity<List<PersonResponse>> findAll(
@@ -46,15 +49,30 @@ public class PersonController {
         return ResponseEntity.ok(personResponses);
     }
 
-    @PostMapping
-    public ResponseEntity<PersonResponse> save(@RequestBody @Valid PersonRequest personRequest){
-        PersonResponse personResponse = personService.createPerson(personRequest);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PersonResponse> save(
+            @RequestPart("person") @Valid PersonRequest personRequest,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+
+        PersonResponse personResponse = personService.createPerson(personRequest, avatarFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(personResponse);
     }
 
+    @PostMapping(value = "/{id}/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadAvatar(
+            @PathVariable Long id,
+            @RequestPart("avatar") MultipartFile avatarFile) {
+
+        String imageUrl = personService.updateAvatar(id,avatarFile);
+        return ResponseEntity.ok(imageUrl);
+    }
+
     @PatchMapping("/{id}")
-    public ResponseEntity<PersonResponse> update(@RequestBody @Valid PersonRequest personRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long id){
-        PersonResponse personResponse = personService.updatePerson(personRequest, id);
+    public ResponseEntity<PersonResponse> update(
+            @RequestPart("person") @Valid PersonRequest personRequest,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile,
+            @PathVariable @Positive(message = "Id must be greater than 0") Long id){
+        PersonResponse personResponse = personService.updatePerson(personRequest, id, avatarFile);
         return ResponseEntity.ok(personResponse);
     }
 
