@@ -4,10 +4,13 @@ import com.example.employeemanagement.dto.request.CountryRequest;
 import com.example.employeemanagement.dto.response.CountryResponse;
 import com.example.employeemanagement.mapper.CountryMapper;
 import com.example.employeemanagement.model.Country;
+import com.example.employeemanagement.model.PagedResponse;
 import com.example.employeemanagement.repository.CountryRepository;
 import com.example.employeemanagement.service.CountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,5 +44,18 @@ public class CountryServiceImpl implements CountryService {
             throw new RuntimeException("Country does not exist");
         }
         countryRepository.deleteById(id);
+    }
+
+    @Override
+    public PagedResponse<CountryResponse> getAllCountry(int page, int size) {
+        List<Country> countries = countryRepository.findAllCountryWithPagination(page, size);
+
+        Long totalCount = countryRepository.countAllCountries();
+
+        List<CountryResponse> responses = countries.stream()
+                .map(CountryMapper::toCountryResponse)
+                .toList();
+
+        return new PagedResponse<>(responses, totalCount);
     }
 }

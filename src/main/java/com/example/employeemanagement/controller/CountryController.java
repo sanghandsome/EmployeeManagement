@@ -2,6 +2,7 @@ package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.CountryRequest;
 import com.example.employeemanagement.dto.response.CountryResponse;
+import com.example.employeemanagement.model.PagedResponse;
 import com.example.employeemanagement.service.CountryService;
 import com.example.employeemanagement.service.impl.CountryServiceImpl;
 import jakarta.validation.Valid;
@@ -12,12 +13,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("countries")
 @RequiredArgsConstructor
 @Validated
 public class CountryController {
     private final CountryServiceImpl countryService;
+
+    @GetMapping
+    public ResponseEntity<PagedResponse<CountryResponse>> getAllCountries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(countryService.getAllCountry(page, size));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<CountryResponse> getCountryById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
