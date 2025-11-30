@@ -1,6 +1,8 @@
 package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.PersonRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
+import com.example.employeemanagement.dto.response.CountryResponse;
 import com.example.employeemanagement.dto.response.PersonResponse;
 import com.example.employeemanagement.service.PersonService;
 import com.example.employeemanagement.service.impl.PersonServiceImpl;
@@ -34,9 +36,13 @@ public class PersonController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PersonResponse> findById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+    public ApiResponse<PersonResponse> findById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
         PersonResponse personResponse = personService.findPersonById(id);
-        return ResponseEntity.ok(personResponse);
+        return ApiResponse.<PersonResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Person retrieved successfully")
+                .data(personResponse)
+                .build();
     }
 
     @GetMapping("/company/{id}")
@@ -50,34 +56,50 @@ public class PersonController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PersonResponse> save(
+    public ApiResponse<PersonResponse> save(
             @RequestPart("person") @Valid PersonRequest personRequest,
             @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
 
         PersonResponse personResponse = personService.createPerson(personRequest, avatarFile);
-        return ResponseEntity.status(HttpStatus.CREATED).body(personResponse);
+        return ApiResponse.<PersonResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("Person created successfully")
+                .data(personResponse)
+                .build();
     }
 
     @PostMapping(value = "/{id}/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadAvatar(
+    public ApiResponse<String> uploadAvatar(
             @PathVariable Long id,
             @RequestPart("avatar") MultipartFile avatarFile) {
 
         String imageUrl = personService.updateAvatar(id,avatarFile);
-        return ResponseEntity.ok(imageUrl);
+        return ApiResponse.<String>builder()
+                .code(HttpStatus.OK.value())
+                .message("Person changed image successfully")
+                .data(imageUrl)
+                .build();
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PersonResponse> update(
+    public ApiResponse<PersonResponse> update(
             @RequestPart("person") @Valid PersonRequest personRequest,
             @RequestPart(value = "avatar", required = false) MultipartFile avatarFile,
             @PathVariable @Positive(message = "Id must be greater than 0") Long id){
         PersonResponse personResponse = personService.updatePerson(personRequest, id, avatarFile);
-        return ResponseEntity.ok(personResponse);
+        return ApiResponse.<PersonResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Person created successfully")
+                .data(personResponse)
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
-        personService.deletePerson(id);
+    public ApiResponse<Void> delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Person created successfully")
+                .data(null)
+                .build();
     }
 }

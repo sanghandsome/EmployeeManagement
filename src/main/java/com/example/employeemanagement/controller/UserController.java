@@ -1,6 +1,7 @@
 package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.UserRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
 import com.example.employeemanagement.dto.response.UserResponse;
 import com.example.employeemanagement.model.User;
 import com.example.employeemanagement.service.UserService;
@@ -24,31 +25,52 @@ public class UserController {
     private final UserServiceImpl userService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> findAll() {
+    public ApiResponse<List<UserResponse>> findAll() {
         List<UserResponse>  userResponseList = userService.findAll();
-        return ResponseEntity.ok(userResponseList);
+        return ApiResponse.<List<UserResponse>> builder()
+                .code(HttpStatus.OK.value())
+                .message("Users retrieved successfully")
+                .data(userResponseList)
+                .build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> findById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+    public ApiResponse<UserResponse> findById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
         UserResponse userResponse = userService.findById(id);
-        return ResponseEntity.ok(userResponse);
+        return ApiResponse.<UserResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("User retrieved successfully")
+                .data(userResponse)
+                .build();
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> save(@RequestBody @Valid UserRequest userRequest){
+    public ApiResponse<UserResponse> save(@RequestBody @Valid UserRequest userRequest){
         UserResponse userCreate = userService.createUser(userRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
+        return ApiResponse.<UserResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("User created successfully")
+                .data(userCreate)
+                .build();
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @RequestBody @Valid UserRequest userRequest){
+    public ApiResponse<UserResponse> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @RequestBody @Valid UserRequest userRequest){
         UserResponse userUpdate = userService.updateUser(id, userRequest);
-        return ResponseEntity.ok(userUpdate);
+        return ApiResponse.<UserResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("User updated successfully")
+                .data(userUpdate)
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+    public ApiResponse<Void> delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
         userService.deleteUser(id);
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("User deleted successfully")
+                .data(null)
+                .build();
     }
 }

@@ -20,6 +20,6 @@ public interface CountryService {
 
     public void deleteCountry(Long id);
 
-    public PagedResponse<CountryResponse> getAllCountry(int page, int size);
+    public PagedResponse<CountryResponse> getAllCountry(int page, int size,String keyword);
 
 }

@@ -47,8 +47,8 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
-    public PagedResponse<CountryResponse> getAllCountry(int page, int size) {
-        List<Country> countries = countryRepository.findAllCountryWithPagination(page, size);
+    public PagedResponse<CountryResponse> getAllCountry(int page, int size,String keyword) {
+        List<Country> countries = countryRepository.findAllCountryWithPagination(page, size, keyword);
 
         Long totalCount = countryRepository.countAllCountries();
 

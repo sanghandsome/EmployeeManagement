@@ -14,10 +14,17 @@ public class DepartmentCustomRepositoryImpl implements DepartmentCustomRepositor
     private EntityManager entityManager;
 
     @Override
-    public List<Department> findDepartmentByCompanyWithPagination(Long company_id, int page, int size) {
-        String jpql = "select d from Department d where d.company.id = :companyId order by d.id asc";
+    public List<Department> findDepartmentByCompanyWithPagination(Long company_id,Long departmentParentId, int page, int size) {
+        String jpql = "select d from Department d where d.company.id = :companyId ";
+        if (departmentParentId != null) {
+            jpql += " and d.parent.id = :departmentParentId ";
+        }
+        jpql += " order by d.id asc";
         TypedQuery<Department> query = entityManager.createQuery(jpql, Department.class);
         query.setParameter("companyId", company_id);
+        if (departmentParentId != null) {
+            query.setParameter("departmentParentId", departmentParentId);
+        }
         query.setFirstResult( page * size);
         query.setMaxResults(size);
         return query.getResultList();

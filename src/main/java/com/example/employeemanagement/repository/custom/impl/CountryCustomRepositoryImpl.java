@@ -14,11 +14,24 @@ public class CountryCustomRepositoryImpl implements CountryCustomRepository {
     private EntityManager entityManager;
 
     @Override
-    public List<Country> findAllCountryWithPagination(int page, int size) {
-        String jpql = "Select c from Country c order by c.id desc ";
+    public List<Country> findAllCountryWithPagination(int page, int size, String keyword) {
+        String jpql = "SELECT c FROM Country c";
+
+        if (keyword != null && !keyword.isEmpty()) {
+            jpql += " WHERE LOWER(c.name) LIKE :kw OR LOWER(c.code) LIKE :kw";
+        }
+
+        jpql += " ORDER BY c.id DESC";
+
         TypedQuery<Country> query = entityManager.createQuery(jpql, Country.class);
+
+        if (keyword != null && !keyword.isEmpty()) {
+            query.setParameter("kw", "%" + keyword.toLowerCase() + "%");
+        }
+
         query.setFirstResult(page * size);
         query.setMaxResults(size);
+
         return query.getResultList();
     }
 }

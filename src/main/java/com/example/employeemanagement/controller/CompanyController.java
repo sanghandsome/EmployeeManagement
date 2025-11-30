@@ -3,6 +3,7 @@ package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.CompanyRequest;
 import com.example.employeemanagement.dto.request.DepartmentRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
 import com.example.employeemanagement.dto.response.CompanyResponse;
 import com.example.employeemanagement.dto.response.DepartmentResponse;
 import com.example.employeemanagement.service.CompanyService;
@@ -19,65 +20,103 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("companies")
+@RequestMapping("/api/v1/companies")
 @RequiredArgsConstructor
 public class CompanyController {
     private final CompanyServiceImpl companyService;
     private final DepartmentServiceImpl departmentService;
 
     @GetMapping
-    public ResponseEntity<List<CompanyResponse>> findAllCompanies(
+    public ApiResponse<List<CompanyResponse>> findAllCompanies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(companyService.findAll(page, size));
+        return ApiResponse.<List<CompanyResponse>>builder()
+                .code(HttpStatus.OK.value())
+                .message("Companies retrieved successfully")
+                .data(companyService.findAll(page, size))
+                .build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CompanyResponse> findCompanyById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
-        return ResponseEntity.ok(companyService.findById(id));
+    public ApiResponse<CompanyResponse> findCompanyById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        return ApiResponse.<CompanyResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Company retrieved successfully")
+                .data(companyService.findById(id))
+                .build();
     }
 
     @PostMapping
-    public ResponseEntity<CompanyResponse> createCompany(@Valid @RequestBody CompanyRequest companyRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(companyService.createCompany(companyRequest));
+    public ApiResponse<CompanyResponse> createCompany(@Valid @RequestBody CompanyRequest companyRequest) {
+        return ApiResponse.<CompanyResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("Company created successfully")
+                .data(companyService.createCompany(companyRequest))
+                .build();
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CompanyResponse> updateCompany(@Valid @RequestBody CompanyRequest companyRequest,@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
-        return ResponseEntity.ok(companyService.updateCompany(companyRequest, id));
+    public ApiResponse<CompanyResponse> updateCompany(@Valid @RequestBody CompanyRequest companyRequest,@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        return ApiResponse.<CompanyResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Company updated successfully")
+                .data(companyService.updateCompany(companyRequest, id))
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCompany(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
-        companyService.deleteCompany(id);
+    public ApiResponse<Void> deleteCompany(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Company deleted successfully")
+                .data(null)
+                .build();
     }
 
     @GetMapping("/{companyId}/departments")
-    public ResponseEntity<List<DepartmentResponse>> findDepartmentByCompany(
+    public ApiResponse<List<DepartmentResponse>> findDepartmentByCompany(
             @PathVariable @Positive(message = "Id must be greater than 0") Long companyId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long departmentParentId
     ) {
-        return ResponseEntity.ok(departmentService.getDepartmentByCompanyId(companyId, page, size));
+        return ApiResponse.<List<DepartmentResponse>>builder()
+                .code(HttpStatus.OK.value())
+                .message("Departments retrieved successfully")
+                .data(departmentService.getDepartmentByCompanyId(companyId,departmentParentId, page, size))
+                .build();
     }
 
+
     @PostMapping("/{companyId}/departments")
-    public ResponseEntity<DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
+    public ApiResponse<DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
         departmentRequest.setCompany_id(companyId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.createDepartment(departmentRequest));
+        return ApiResponse.<DepartmentResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("Department created successfully")
+                .data(departmentService.createDepartment(departmentRequest))
+                .build();
     }
 
     @PatchMapping("/{companyId}/departments/{departmentId}")
-    public  ResponseEntity<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId, @PathVariable @Positive(message = "Id must be greater than 0") Long departmentId) {
+    public  ApiResponse<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId, @PathVariable @Positive(message = "Id must be greater than 0") Long departmentId) {
         departmentRequest.setCompany_id(companyId);
-        return ResponseEntity.ok(departmentService.updateDepartment(departmentId, departmentRequest));
+        return ApiResponse.<DepartmentResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Department updated successfully")
+                .data(departmentService.updateDepartment(departmentId, departmentRequest))
+                .build();
     }
 
     @DeleteMapping("/{companyId}/departments/{departmentId}")
-    public ResponseEntity<Void> deleteDepartment(@PathVariable @Positive(message = "Id must be greater than 0") Long departmentId, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
+    public ApiResponse<Void> deleteDepartment(@PathVariable @Positive(message = "Id must be greater than 0") Long departmentId, @PathVariable @Positive(message = "Id must be greater than 0") Long companyId) {
         departmentService.deleteDepartment(departmentId,companyId);
-        return ResponseEntity.ok().build();
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Department deleted successfully")
+                .data(null)
+                .build();
     }
 
 

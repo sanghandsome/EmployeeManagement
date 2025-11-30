@@ -1,6 +1,7 @@
 package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.ProjectRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
 import com.example.employeemanagement.dto.response.ProjectResponse;
 import com.example.employeemanagement.service.ProjectService;
 import com.example.employeemanagement.service.impl.ProjectServiceImpl;
@@ -39,34 +40,43 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
-        return ResponseEntity.ok(projectService.getProjectById(id));
+    public ApiResponse<ProjectResponse> getProjectById(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+        return ApiResponse.<ProjectResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Project retrieved successfully")
+                .data(projectService.getProjectById(id))
+                .build();
     }
 
     @PostMapping
-    public ResponseEntity<?> createProject(@RequestBody @Valid ProjectRequest projectRequest) {
+    public ApiResponse<ProjectResponse> createProject(@RequestBody @Valid ProjectRequest projectRequest) {
         ProjectResponse projectResponse = projectService.createProject(projectRequest);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of(
-                        "message", "Some persons were not added because they do not belong to this company",
-                        "project", projectResponse
-                ));
+        return ApiResponse.<ProjectResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Project created successfully")
+                .data(projectResponse)
+                .build();
     }
 
     @PatchMapping("/{id}")
-    public  ResponseEntity<?> updateProject(@RequestBody @Valid ProjectRequest projectRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long id){
+    public  ApiResponse<ProjectResponse> updateProject(@RequestBody @Valid ProjectRequest projectRequest, @PathVariable @Positive(message = "Id must be greater than 0") Long id){
         ProjectResponse projectResponse = projectService.updateProject(id, projectRequest);
-        return ResponseEntity.ok(Map.of(
-                "message", "Some persons were not added because they do not belong to this company",
-                "project", projectResponse
-        ));
+        return ApiResponse.<ProjectResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Project updated successfully")
+                .data(projectResponse)
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable @Positive Long id){
+    public ApiResponse<Void> deleteProject(@PathVariable @Positive Long id){
         projectService.deleteProjectById(id);
-        return ResponseEntity.ok().build();
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Project deleted successfully")
+                .data(null)
+                .build();
     }
 
 }

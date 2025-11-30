@@ -1,6 +1,7 @@
 package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.CountryRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
 import com.example.employeemanagement.dto.response.CountryResponse;
 import com.example.employeemanagement.model.PagedResponse;
 import com.example.employeemanagement.service.CountryService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("countries")
+@RequestMapping("api/v1/countries")
 @RequiredArgsConstructor
 @Validated
 public class CountryController {
@@ -25,44 +26,52 @@ public class CountryController {
     @GetMapping
     public ResponseEntity<PagedResponse<CountryResponse>> getAllCountries(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword
     ) {
-        return ResponseEntity.ok(countryService.getAllCountry(page, size));
+        return ResponseEntity.ok(countryService.getAllCountry(page, size, keyword));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CountryResponse> getCountryById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+    public ApiResponse<CountryResponse> getCountryById(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
         CountryResponse countryResponse = countryService.getCountryById(id);
-        return ResponseEntity.ok(countryResponse);
+        return ApiResponse.<CountryResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Country retrieved successfully")
+                .data(countryResponse)
+                .build();
     }
 
     @PostMapping
-    public ResponseEntity<CountryResponse> createCountry(@Valid @RequestBody CountryRequest countryRequest) {
+    public ApiResponse<CountryResponse> createCountry(@Valid @RequestBody CountryRequest countryRequest) {
         CountryResponse responseCreate  = countryService.createCountry(countryRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseCreate);
+        return ApiResponse.<CountryResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("Country created successfully")
+                .data(responseCreate)
+                .build();
     }
 
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CountryResponse> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @Valid @RequestBody CountryRequest countryRequest) {
-        try {
-            CountryResponse responseUpdate = countryService.updateCountry(id, countryRequest);
-            return ResponseEntity.ok(responseUpdate);
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ApiResponse<CountryResponse> update(@PathVariable @Positive(message = "Id must be greater than 0") Long id, @Valid @RequestBody CountryRequest countryRequest) {
+        CountryResponse responseUpdate = countryService.updateCountry(id, countryRequest);
+        return ApiResponse.<CountryResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Country updated successfully")
+                .data(responseUpdate)
+                .build();
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
-        try {
-            countryService.deleteCountry(id);
-            return  ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ApiResponse<Void> delete(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+        countryService.deleteCountry(id);
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Country deleted successfully")
+                .data(null)
+                .build();
+
     }
 
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface DepartmentService {
 
-    public List<DepartmentResponse> getDepartmentByCompanyId(Long companyId, int page, int size);
+    public List<DepartmentResponse> getDepartmentByCompanyId(Long companyId,Long departmentParentId, int page, int size);
 
     public DepartmentResponse getDepartmentById(Long id);
 

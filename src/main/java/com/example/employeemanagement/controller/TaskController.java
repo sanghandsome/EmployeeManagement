@@ -1,6 +1,7 @@
 package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.TaskRequest;
+import com.example.employeemanagement.dto.response.ApiResponse;
 import com.example.employeemanagement.dto.response.TaskResponse;
 import com.example.employeemanagement.service.TaskService;
 import jakarta.validation.Valid;
@@ -50,8 +51,12 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
-        return ResponseEntity.ok(taskService.getTaskById(id));
+    public ApiResponse<TaskResponse> getTask(@PathVariable @Positive(message = "Id must be greater than 0") Long id){
+        return ApiResponse.<TaskResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Task retrieved successfully")
+                .data(taskService.getTaskById(id))
+                .build();
     }
 
     @GetMapping("/export")
@@ -72,20 +77,32 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody @Valid TaskRequest taskRequest){
-        return ResponseEntity.ok(taskService.createTask(taskRequest));
+    public ApiResponse<TaskResponse> createTask(@RequestBody @Valid TaskRequest taskRequest){
+        return ApiResponse.<TaskResponse>builder()
+                .code(HttpStatus.CREATED.value())
+                .message("Task created successfully")
+                .data(taskService.createTask(taskRequest))
+                .build();
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(
+    public ApiResponse<TaskResponse> updateTask(
             @RequestBody @Valid TaskRequest taskRequest,
             @PathVariable @Positive(message = "Id must be greater than 0") Long id){
-        return ResponseEntity.ok(taskService.updateTask(taskRequest, id));
+        return ApiResponse.<TaskResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Task updated successfully")
+                .data(taskService.updateTask(taskRequest, id))
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
+    public ApiResponse<Void> deleteTask(@PathVariable @Positive(message = "Id must be greater than 0") Long id) {
         taskService.deleteTask(id);
-        return ResponseEntity.ok().build();
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Task deleted successfully")
+                .data(null)
+                .build();
     }
 }
