@@ -1,12 +1,18 @@
 package com.example.employeemanagement.service.impl;
 
 import com.example.employeemanagement.dto.request.UserRequest;
+import com.example.employeemanagement.dto.response.PageResponse;
 import com.example.employeemanagement.dto.response.UserResponse;
 import com.example.employeemanagement.mapper.UserMapper;
 import com.example.employeemanagement.model.User;
 import com.example.employeemanagement.repository.UserRepository;
+import com.example.employeemanagement.repository.specification.UserSpecification;
 import com.example.employeemanagement.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,11 +41,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponse> findAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toUserResponse)
-                .toList();
+    public PageResponse<UserResponse> findAll(int page, int size, String email) {
+        Pageable pageable = PageRequest.of(page-1,size);
+
+        Specification<User> specification = Specification.allOf(UserSpecification.searchByEmail(email));
+
+        Page<User> userPage = userRepository.findAll(specification,pageable);
+        List<User> users = userPage.getContent();
+
+        List<UserResponse> userResponseList = users.stream().map(userMapper::toUserResponse).toList();
+
+        return PageResponse.<UserResponse>builder()
+                .currentPages(pageable.getPageNumber())
+                .pageSizes(pageable.getPageSize())
+                .totalPages(userPage.getTotalPages())
+                .totalElements(userPage.getTotalElements())
+                .data(userResponseList)
+                .build();
     }
 
     @Override

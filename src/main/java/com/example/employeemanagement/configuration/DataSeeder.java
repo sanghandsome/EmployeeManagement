@@ -1,11 +1,9 @@
-package com.example.employeemanagement.config;
+package com.example.employeemanagement.configuration;
 
 import com.example.employeemanagement.model.*;
 import com.example.employeemanagement.model.ProjectPerson;
 import com.example.employeemanagement.model.enums.Gender;
-import com.example.employeemanagement.model.enums.Priority;
 import com.example.employeemanagement.model.enums.Roles;
-import com.example.employeemanagement.model.enums.Status;
 import com.example.employeemanagement.repository.*;
 import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;

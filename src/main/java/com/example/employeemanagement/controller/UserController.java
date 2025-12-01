@@ -2,6 +2,7 @@ package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.request.UserRequest;
 import com.example.employeemanagement.dto.response.ApiResponse;
+import com.example.employeemanagement.dto.response.PageResponse;
 import com.example.employeemanagement.dto.response.UserResponse;
 import com.example.employeemanagement.model.User;
 import com.example.employeemanagement.service.UserService;
@@ -25,9 +26,13 @@ public class UserController {
     private final UserServiceImpl userService;
 
     @GetMapping
-    public ApiResponse<List<UserResponse>> findAll() {
-        List<UserResponse>  userResponseList = userService.findAll();
-        return ApiResponse.<List<UserResponse>> builder()
+    public ApiResponse<PageResponse<UserResponse>> findAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String email
+    ) {
+        PageResponse<UserResponse> userResponseList = userService.findAll(page, size,email);
+        return ApiResponse.<PageResponse<UserResponse>> builder()
                 .code(HttpStatus.OK.value())
                 .message("Users retrieved successfully")
                 .data(userResponseList)
