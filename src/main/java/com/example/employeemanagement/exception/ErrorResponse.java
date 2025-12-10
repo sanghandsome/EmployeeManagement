@@ -13,7 +13,7 @@ import java.util.Date;
 
 public class ErrorResponse {
     private String message;
-    private HttpStatus status;
+    private int status;
     private Date timestamp;
     private String path;
     private String error;

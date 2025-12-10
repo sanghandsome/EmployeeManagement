@@ -1,9 +1,13 @@
 package com.example.employeemanagement.configuration;
 
 import com.example.employeemanagement.service.impl.UserDetailServiceCustomizer;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,7 +17,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+
+import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
@@ -32,8 +40,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers(WHITELISTED_URLS).permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer((oauth2) -> oauth2.
-                        jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder)));
+                .oauth2ResourceServer((oauth2) -> oauth2
+                        .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                        .accessDeniedHandler(new JwtAccessDeniedHandler())
+                );
         return http.build();
     }
 

@@ -3,6 +3,7 @@ package com.example.employeemanagement.service.impl;
 import com.example.employeemanagement.dto.TokenPayload;
 import com.example.employeemanagement.dto.request.LoginRequest;
 import com.example.employeemanagement.dto.response.LoginResponse;
+import com.example.employeemanagement.exception.AppException;
 import com.example.employeemanagement.model.RedisToken;
 import com.example.employeemanagement.model.User;
 import com.example.employeemanagement.repository.RedisTokenRepository;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.Date;
+
+import static com.example.employeemanagement.exception.ErrorCode.INVALID_TOKEN;
 
 @Service
 @Slf4j
@@ -55,16 +58,16 @@ public class AuthenticationServiceImpl {
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         if (expirationTime.before(new Date())) {
-            throw new JwtException("Token expired");
+            throw new AppException(INVALID_TOKEN);
         }
 
         if (!redisTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
-            throw new JwtException("Token not found");
+            throw new AppException(INVALID_TOKEN);
         }
 
         boolean verify = signedJWT.verify(new MACVerifier(jwtService.getSecretKey()));
         if (!verify) {
-            throw new JwtException("Token is valid");
+            throw new AppException(INVALID_TOKEN);
         }
         Long userId = Long.valueOf(signedJWT.getJWTClaimsSet().getSubject());
         String accessToken = jwtService.generateAccessToken(userId);

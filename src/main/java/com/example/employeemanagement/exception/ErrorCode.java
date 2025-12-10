@@ -10,6 +10,7 @@ public enum ErrorCode {
     USER_EXITS(400,"User does not exist",HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(401,"Unauthorized",HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN(403,"Invalid Token",HttpStatus.FORBIDDEN),
+    ACCESS_DENIED(403,"Access Denied",HttpStatus.FORBIDDEN),
     ;
     private final int code;
     private final String message;
