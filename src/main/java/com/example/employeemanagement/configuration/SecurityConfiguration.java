@@ -21,20 +21,19 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfiguration {
 
     private static final String [] WHITELISTED_URLS = {
-            "/api/v1/users/**",
-            "/api/v1/persons/**",
-            "/api/v1/companies/**",
-            "api/v1/countries/**",
             "/api/v1/auth/**",
     };
     private final UserDetailServiceCustomizer userDetailsService;
+    private final CustomizeJwtDecoder jwtDecoder;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers(WHITELISTED_URLS).permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer((oauth2) -> oauth2.
+                        jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder)));
         return http.build();
     }
 
