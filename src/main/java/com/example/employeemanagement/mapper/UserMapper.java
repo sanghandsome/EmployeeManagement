@@ -11,6 +11,8 @@ import com.example.employeemanagement.repository.PersonRepository;
 import com.example.employeemanagement.repository.RoleRepository;
 import com.example.employeemanagement.service.PersonService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -30,9 +32,11 @@ public class UserMapper {
                 .email(user.getEmail())
                 .isActive(user.isActive())
                 .personName(user.getPerson().getFull_name())
-                .roleName(user.getRoles().stream()
-                        .map(Role::getRole)
-                        .collect(Collectors.toList()))
+                .roleName(user.getAuthorities().stream()
+                        .map(GrantedAuthority:: getAuthority)
+                        .map(Roles::valueOf)
+                        .toList()
+                )
                 .build();
     }
 

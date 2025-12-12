@@ -15,11 +15,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import static com.example.employeemanagement.exception.ErrorCode.INVALID_TOKEN;
 
@@ -39,7 +42,8 @@ public class AuthenticationServiceImpl {
         log.info("Authentication Successful: {}", authentication.isAuthenticated());
 
         User user = (User) authentication.getPrincipal();
-        TokenPayload refreshPayload = jwtService.generateRefreshToken(user.getId());
+        List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        TokenPayload refreshPayload = jwtService.generateRefreshToken(user.getId(), roles);
 
         redisTokenRepository.save(RedisToken.builder()
                         .jwtId(refreshPayload.getJwtID())
@@ -47,7 +51,7 @@ public class AuthenticationServiceImpl {
                 .build());
 
         return LoginResponse.builder()
-                .accessToken(jwtService.generateAccessToken(user.getId()))
+                .accessToken(jwtService.generateAccessToken(user.getId(),roles))
                 .refreshToken(refreshPayload.getToken())
                 .build();
 
@@ -70,7 +74,9 @@ public class AuthenticationServiceImpl {
             throw new AppException(INVALID_TOKEN);
         }
         Long userId = Long.valueOf(signedJWT.getJWTClaimsSet().getSubject());
-        String accessToken = jwtService.generateAccessToken(userId);
+        Object roles = signedJWT.getJWTClaimsSet().getClaim("roles");
+        List<String> listroles = extractAuthorities(roles);
+        String accessToken = jwtService.generateAccessToken(userId, listroles);
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .build();
@@ -95,6 +101,18 @@ public class AuthenticationServiceImpl {
                 redisTokenRepository.deleteById(refreshPayload.getJwtID());
             }
         }
+    }
+
+    public List<String> extractAuthorities(Object claimRole){
+        if(claimRole==null){
+            return new ArrayList<>();
+        }
+        if (claimRole instanceof List<?> lists){
+            return lists.stream()
+                    .map(String::valueOf)
+                    .toList();
+        }
+        return List.of(claimRole.toString());
     }
 }
 

@@ -1,6 +1,9 @@
 package com.example.employeemanagement.service.impl;
 
 import com.example.employeemanagement.dto.TokenPayload;
+import com.example.employeemanagement.exception.AppException;
+import com.example.employeemanagement.exception.ErrorCode;
+import com.example.employeemanagement.model.enums.Roles;
 import com.example.employeemanagement.repository.RedisTokenRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -15,7 +18,10 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+
+import static com.example.employeemanagement.exception.ErrorCode.INVALID_TOKEN;
 
 @Slf4j
 @Service
@@ -26,10 +32,9 @@ public class JwtServiceImpl {
     private String secretKey;
     private final RedisTokenRepository redisTokenRepository;
 
-    public String generateAccessToken(Long userId) throws JOSEException {
+    public String generateAccessToken(Long userId, List<String> rolesList) throws JOSEException {
         // Header
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-        log.info(secretKey);
         //Payload
         Date issueTime = new Date();
         Date expirationTime = Date.from(issueTime.toInstant().plus(10, ChronoUnit.MINUTES));
@@ -39,6 +44,7 @@ public class JwtServiceImpl {
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(UUID.randomUUID().toString())
+                .claim("roles", rolesList)
                 .build();
 
         Payload payload = new Payload(claimsSet.toJSONObject());
@@ -49,7 +55,7 @@ public class JwtServiceImpl {
         return jwsObject.serialize();
     }
 
-    public TokenPayload generateRefreshToken(Long userId) throws JOSEException {
+    public TokenPayload generateRefreshToken(Long userId,List<String> rolesList) throws JOSEException {
         //Header
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
@@ -64,6 +70,7 @@ public class JwtServiceImpl {
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(jwtID)
+                .claim("roles", rolesList)
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -82,11 +89,11 @@ public class JwtServiceImpl {
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
         if (expirationTime.before(new Date())) {
-            throw new RuntimeException("Token expired");
+            throw new AppException(INVALID_TOKEN);
         }
 
         if (redisTokenRepository.existsById(jwtId)){
-            throw new RuntimeException("Token is logged");
+            throw new AppException(INVALID_TOKEN);
         }
         return true;
     }

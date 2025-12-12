@@ -1,12 +1,15 @@
 package com.example.employeemanagement.model;
 
+import com.example.employeemanagement.model.enums.Roles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.SimpleErrors;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,17 +38,16 @@ public class User extends BaseEntity implements UserDetails{
     @OneToMany(mappedBy = "user" ,cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserRole> userRoles = new HashSet<>();
 
-    public Set<Role> getRoles() {
-        Set<Role> roles = new HashSet<>();
-        for (UserRole ur : userRoles) {
-            roles.add(ur.getRole());
-        }
-        return roles;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        List<Role> roles = this.userRoles.stream().map(UserRole::getRole).toList();
+        List<Roles> roleNames = roles.stream().map(Role :: getRole).toList();
+
+        return roleNames.stream()
+                .map(Enum::name)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
     }
 
     @Override

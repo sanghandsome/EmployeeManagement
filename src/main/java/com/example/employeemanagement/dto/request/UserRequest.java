@@ -5,11 +5,15 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.List;
 
 @Data
+@Getter
+@Setter
 public class UserRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format ")
@@ -24,4 +28,8 @@ public class UserRequest {
     private Long personId;
 
     private List<Long> roleId;
+
+    public void addRole(Long roleId){
+        this.roleId.add(roleId);
+    }
 }

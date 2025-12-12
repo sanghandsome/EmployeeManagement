@@ -4,7 +4,9 @@ import com.example.employeemanagement.dto.request.UserRequest;
 import com.example.employeemanagement.dto.response.PageResponse;
 import com.example.employeemanagement.dto.response.UserResponse;
 import com.example.employeemanagement.mapper.UserMapper;
+import com.example.employeemanagement.model.Role;
 import com.example.employeemanagement.model.User;
+import com.example.employeemanagement.repository.RoleRepository;
 import com.example.employeemanagement.repository.UserRepository;
 import com.example.employeemanagement.repository.specification.UserSpecification;
 import com.example.employeemanagement.service.UserService;
@@ -13,9 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,9 +29,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserResponse createUser(UserRequest userRequest) {
+        if(userRequest.getRoleId() == null){
+            userRequest.addRole(1L);
+        }
         userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         User userCreate = userMapper.toUser(userRequest);
         userRepository.save(userCreate);
@@ -41,6 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
     public PageResponse<UserResponse> findAll(int page, int size, String email) {
         Pageable pageable = PageRequest.of(page-1,size);
 
