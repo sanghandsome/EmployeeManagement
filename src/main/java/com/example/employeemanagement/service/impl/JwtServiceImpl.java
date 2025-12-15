@@ -37,7 +37,7 @@ public class JwtServiceImpl {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         //Payload
         Date issueTime = new Date();
-        Date expirationTime = Date.from(issueTime.toInstant().plus(10, ChronoUnit.MINUTES));
+        Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(userId.toString())
                 .issuer("backend-service")

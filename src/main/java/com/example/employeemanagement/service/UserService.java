@@ -15,6 +15,7 @@ public interface UserService {
 
     public PageResponse<UserResponse> findAll(int page, int size,String email) ;
 
+
     public UserResponse updateUser(Long id, UserRequest userRequest) ;
 
     public void deleteUser(Long id) ;
